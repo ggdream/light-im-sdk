@@ -32,7 +32,7 @@ class LightIMSDK {
     bool tls = false,
     required LightIMSDKListener listener,
   }) {
-    _endpoint = _endpoint;
+    _endpoint = endpoint;
     _tls = tls;
     final uuid = const Uuid().v4();
     _lightIMSDKListener[uuid] = listener;
@@ -41,7 +41,10 @@ class LightIMSDK {
         baseUrl: tls ? 'https://$endpoint' : 'http://$endpoint');
   }
 
-  static void dispose() {
+  static void _dispose() {
+    _conversationList.clear();
+    _messageMap.clear();
+    _userInfoMap.clear();
     _pingTimer.cancel();
     _stream.cancel();
     _conn.sink.close();
@@ -95,6 +98,16 @@ class LightIMSDK {
     _conversationList.addAll(conversationList);
 
     return true;
+  }
+
+  /// 退出登录
+  static Future<ResponseModel<ConnectLogoutResModel?>?> logout() async {
+    final res = await LightIMSDK.logout();
+    if (!LightIMSDKHttp.checkRes(res)) return res;
+
+    _dispose();
+
+    return res;
   }
 
   /// 删除会话

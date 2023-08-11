@@ -182,6 +182,15 @@ class LightIMSDKHttp {
     }
   }
 
+  /// 退出登录
+  static Future<ResponseModel<ConnectLogoutResModel?>?> logout() async {
+    return post(
+      '/connect/logout',
+      {},
+      (map) => ConnectLogoutResModel.fromMap(map),
+    );
+  }
+
   /// 获取用户信息
   static Future<ResponseModel<UserProfileResModel?>?> profileUser({
     required String userId,
