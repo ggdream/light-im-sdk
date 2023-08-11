@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -110,6 +111,27 @@ class LightIMSDK {
     return res;
   }
 
+  /// 上传文件
+  static Future<String?> _fileUpload({
+    required XFile file,
+    required String contentType,
+  }) async {
+    final res1 = await LightIMSDKHttp.filePresignPutURL(
+      contentType: contentType,
+    );
+    if (!LightIMSDKHttp.checkRes(res1)) return null;
+
+    final res1Data = res1!.data!;
+    final res2 = await LightIMSDKHttp.filePresignPut(
+      url: res1Data.presignUrl,
+      file: file,
+      contentType: contentType,
+    );
+    if (res2 != true) return null;
+
+    return res1Data.url;
+  }
+
   /// 删除会话
   static Future<ResponseModel<ConversationDeleteResModel?>?>
       deleteConversation({
@@ -203,7 +225,7 @@ class LightIMSDK {
   }
 
   /// 发送消息
-  static Future<ResponseModel<MessageSendResModel?>?> createMessage({
+  static Future<ResponseModel<MessageSendResModel?>?> sendMessage({
     required String userId,
     required LimMessageType type,
     String? text,
@@ -220,6 +242,75 @@ class LightIMSDK {
       image: image,
       audio: audio,
       video: video,
+      custom: custom,
+    );
+  }
+
+  /// 发送文本消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendTextMessage({
+    required String userId,
+    required String text,
+  }) async {
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.text,
+      text: text,
+    );
+  }
+
+  /// 发送图片消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendImageMessage({
+    required String userId,
+    required XFile file,
+  }) async {
+    final res = await _fileUpload(file: file, contentType: file.mimeType!);
+    if (res == null) return null;
+
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.image,
+      image: res,
+    );
+  }
+
+  /// 发送语音消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendAudioMessage({
+    required String userId,
+    required XFile file,
+  }) async {
+    final res = await _fileUpload(file: file, contentType: file.mimeType!);
+    if (res == null) return null;
+
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.audio,
+      audio: res,
+    );
+  }
+
+  /// 发送语音消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendVideoMessage({
+    required String userId,
+    required XFile file,
+  }) async {
+    final res = await _fileUpload(file: file, contentType: file.mimeType!);
+    if (res == null) return null;
+
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.video,
+      video: res,
+    );
+  }
+
+  /// 发送自定义消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendCustomMessage({
+    required String userId,
+    required String custom,
+  }) async {
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.custom,
       custom: custom,
     );
   }

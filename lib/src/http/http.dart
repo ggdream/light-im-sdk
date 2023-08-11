@@ -1,3 +1,4 @@
+import 'package:cross_file/cross_file.dart';
 import 'package:dio/dio.dart';
 
 import 'model/model.dart';
@@ -155,17 +156,16 @@ class LightIMSDKHttp {
 
   static Future<bool?> filePresignPut({
     required String url,
-    required dynamic data,
-    required int length,
+    required XFile file,
     required String contentType,
   }) async {
     try {
       final res = await Dio().put(
         url,
-        data: data,
+        data: file.openRead(),
         options: Options(
           headers: {
-            'Content-Length': length,
+            'Content-Length': await file.length(),
             'Content-Type': contentType,
           },
         ),
@@ -188,6 +188,19 @@ class LightIMSDKHttp {
       '/connect/logout',
       {},
       (map) => ConnectLogoutResModel.fromMap(map),
+    );
+  }
+
+  /// 获取上传文件的预签名链接
+  static Future<ResponseModel<FilePresignPutURLResModel?>?> filePresignPutURL({
+    required String contentType,
+  }) async {
+    return post(
+      '/file/presign',
+      {
+        'content_type': contentType,
+      },
+      (map) => FilePresignPutURLResModel.fromMap(map),
     );
   }
 

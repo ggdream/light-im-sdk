@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cross_file: ^0.3.3+4
   dio: ^5.2.1+1
   uuid: ^3.0.7
   web_socket_channel: ^2.4.0

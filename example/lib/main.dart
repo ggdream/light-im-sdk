@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _sendMessage() async {
-    final res = await LightIMSDK.createMessage(
+    final res = await LightIMSDK.sendMessage(
       userId: '2',
       type: LimMessageType.text,
       text: '你好',
