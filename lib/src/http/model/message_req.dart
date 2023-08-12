@@ -1,28 +1,22 @@
-class LimElem {}
-
-class LimTextElem extends LimElem {
-  LimTextElem({
+class TextElemReqModel {
+  TextElemReqModel({
     required this.text,
   });
 
   final String text;
 
-  factory LimTextElem.fromMap(Map<String, dynamic> json) => LimTextElem(
+  factory TextElemReqModel.fromMap(Map<String, dynamic> json) =>
+      TextElemReqModel(
         text: json["text"],
       );
 
   Map<String, dynamic> toMap() => {
         "text": text,
       };
-
-  @override
-  String toString() {
-    return text;
-  }
 }
 
-class LimImageElem extends LimElem {
-  LimImageElem({
+class ImageElemReqModel {
+  ImageElemReqModel({
     required this.contentType,
     required this.name,
     required this.size,
@@ -36,7 +30,8 @@ class LimImageElem extends LimElem {
   final String url;
   final String thumbnailUrl;
 
-  factory LimImageElem.fromMap(Map<String, dynamic> json) => LimImageElem(
+  factory ImageElemReqModel.fromMap(Map<String, dynamic> json) =>
+      ImageElemReqModel(
         contentType: json["content_type"],
         name: json["name"],
         size: json["size"],
@@ -51,15 +46,10 @@ class LimImageElem extends LimElem {
         "url": url,
         "thumbnail_url": thumbnailUrl,
       };
-
-  @override
-  String toString() {
-    return '[图片消息]';
-  }
 }
 
-class LimAudioElem extends LimElem {
-  LimAudioElem({
+class AudioElemReqModel {
+  AudioElemReqModel({
     required this.contentType,
     required this.duration,
     required this.name,
@@ -73,7 +63,8 @@ class LimAudioElem extends LimElem {
   final int size;
   final String url;
 
-  factory LimAudioElem.fromMap(Map<String, dynamic> json) => LimAudioElem(
+  factory AudioElemReqModel.fromMap(Map<String, dynamic> json) =>
+      AudioElemReqModel(
         contentType: json["content_type"],
         duration: json["duration"],
         name: json["name"],
@@ -88,15 +79,10 @@ class LimAudioElem extends LimElem {
         "size": size,
         "url": url,
       };
-
-  @override
-  String toString() {
-    return '[音频消息]';
-  }
 }
 
-class LimVideoElem extends LimElem {
-  LimVideoElem({
+class VideoElemReqModel {
+  VideoElemReqModel({
     required this.contentType,
     required this.duration,
     required this.name,
@@ -112,7 +98,8 @@ class LimVideoElem extends LimElem {
   final String url;
   final String thumbnailUrl;
 
-  factory LimVideoElem.fromMap(Map<String, dynamic> json) => LimVideoElem(
+  factory VideoElemReqModel.fromMap(Map<String, dynamic> json) =>
+      VideoElemReqModel(
         contentType: json["content_type"],
         duration: json["duration"],
         name: json["name"],
@@ -129,15 +116,10 @@ class LimVideoElem extends LimElem {
         "url": url,
         "thumbnail_url": thumbnailUrl,
       };
-
-  @override
-  String toString() {
-    return '[视频消息]';
-  }
 }
 
-class LimFileElem extends LimElem {
-  LimFileElem({
+class FileElemReqModel {
+  FileElemReqModel({
     required this.contentType,
     required this.name,
     required this.size,
@@ -149,7 +131,8 @@ class LimFileElem extends LimElem {
   final int size;
   final String url;
 
-  factory LimFileElem.fromMap(Map<String, dynamic> json) => LimFileElem(
+  factory FileElemReqModel.fromMap(Map<String, dynamic> json) =>
+      FileElemReqModel(
         contentType: json["content_type"],
         name: json["name"],
         size: json["size"],
@@ -162,36 +145,27 @@ class LimFileElem extends LimElem {
         "size": size,
         "url": url,
       };
-
-  @override
-  String toString() {
-    return '[文件消息]';
-  }
 }
 
-class LimCustomElem extends LimElem {
-  LimCustomElem({
+class CustomElemReqModel {
+  CustomElemReqModel({
     required this.content,
   });
 
   final String content;
 
-  factory LimCustomElem.fromMap(Map<String, dynamic> json) => LimCustomElem(
+  factory CustomElemReqModel.fromMap(Map<String, dynamic> json) =>
+      CustomElemReqModel(
         content: json["content"],
       );
 
   Map<String, dynamic> toMap() => {
         "content": content,
       };
-
-  @override
-  String toString() {
-    return '[自定义消息]';
-  }
 }
 
-class LimRecordElem extends LimElem {
-  LimRecordElem({
+class RecordElemReqModel {
+  RecordElemReqModel({
     required this.contentType,
     required this.duration,
     required this.size,
@@ -203,7 +177,8 @@ class LimRecordElem extends LimElem {
   final int size;
   final String url;
 
-  factory LimRecordElem.fromMap(Map<String, dynamic> json) => LimRecordElem(
+  factory RecordElemReqModel.fromMap(Map<String, dynamic> json) =>
+      RecordElemReqModel(
         contentType: json["content_type"],
         duration: json["duration"],
         size: json["size"],
@@ -216,9 +191,4 @@ class LimRecordElem extends LimElem {
         "size": size,
         "url": url,
       };
-
-  @override
-  String toString() {
-    return '[语音消息]';
-  }
 }

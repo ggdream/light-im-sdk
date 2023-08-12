@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:mime/mime.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -31,24 +32,28 @@ class LightIMSDK {
   static void init({
     required String endpoint,
     bool tls = false,
-    required LightIMSDKListener listener,
+    LightIMSDKListener? listener,
   }) {
     _endpoint = endpoint;
     _tls = tls;
-    final uuid = const Uuid().v4();
-    _lightIMSDKListener[uuid] = listener;
+    if (listener != null) {
+      final uuid = const Uuid().v4();
+      _lightIMSDKListener[uuid] = listener;
+    }
 
     LightIMSDKHttp.init(
-        baseUrl: tls ? 'https://$endpoint' : 'http://$endpoint');
+      baseUrl: tls ? 'https://$endpoint' : 'http://$endpoint',
+    );
   }
 
   static void _dispose() {
+    _pingTimer.cancel();
+    _conn.sink.close();
+    _stream.cancel();
+    _lightIMSDKListener.clear();
     _conversationList.clear();
     _messageMap.clear();
     _userInfoMap.clear();
-    _pingTimer.cancel();
-    _stream.cancel();
-    _conn.sink.close();
   }
 
   static Future<bool> login({
@@ -111,6 +116,11 @@ class LightIMSDK {
     return res;
   }
 
+  static void addListener(LightIMSDKListener listener) {
+    final uuid = const Uuid().v4();
+    _lightIMSDKListener[uuid] = listener;
+  }
+
   /// 上传文件
   static Future<String?> _fileUpload({
     required XFile file,
@@ -168,11 +178,13 @@ class LightIMSDK {
         isRead: false,
         isPeerRead: false,
         createAt: 0,
-        text: '',
-        image: '',
-        audio: '',
-        video: '',
-        custom: '',
+        text: null,
+        image: null,
+        audio: null,
+        video: null,
+        file: null,
+        custom: null,
+        record: null,
       ),
     );
   }
@@ -202,11 +214,60 @@ class LightIMSDK {
         isRead: e.isRead,
         isPeerRead: false,
         createAt: e.createAt,
-        text: e.text,
-        image: e.image,
-        audio: e.audio,
-        video: e.video,
-        custom: e.custom,
+        text: e.text == null
+            ? null
+            : LimTextElem(
+                text: e.text!.text,
+              ),
+        image: e.image == null
+            ? null
+            : LimImageElem(
+                contentType: e.image!.contentType,
+                name: e.image!.name,
+                size: e.image!.size,
+                url: e.image!.url,
+                thumbnailUrl: e.image!.thumbnailUrl,
+              ),
+        audio: e.audio == null
+            ? null
+            : LimAudioElem(
+                contentType: e.audio!.contentType,
+                duration: e.audio!.duration,
+                name: e.audio!.name,
+                size: e.audio!.size,
+                url: e.audio!.url,
+              ),
+        video: e.video == null
+            ? null
+            : LimVideoElem(
+                contentType: e.video!.contentType,
+                duration: e.video!.duration,
+                name: e.video!.name,
+                size: e.video!.size,
+                url: e.video!.url,
+                thumbnailUrl: e.video!.thumbnailUrl,
+              ),
+        file: e.file == null
+            ? null
+            : LimFileElem(
+                contentType: e.file!.contentType,
+                name: e.file!.name,
+                size: e.file!.size,
+                url: e.file!.url,
+              ),
+        custom: e.custom == null
+            ? null
+            : LimCustomElem(
+                content: e.custom!.content,
+              ),
+        record: e.record == null
+            ? null
+            : LimRecordElem(
+                contentType: e.record!.contentType,
+                duration: e.record!.duration,
+                size: e.record!.size,
+                url: e.record!.url,
+              ),
       );
       final conv = LimConversation(
         userId: e.userId,
@@ -228,11 +289,13 @@ class LightIMSDK {
   static Future<ResponseModel<MessageSendResModel?>?> sendMessage({
     required String userId,
     required LimMessageType type,
-    String? text,
-    String? image,
-    String? audio,
-    String? video,
-    String? custom,
+    TextElemReqModel? text,
+    ImageElemReqModel? image,
+    AudioElemReqModel? audio,
+    VideoElemReqModel? video,
+    FileElemReqModel? file,
+    CustomElemReqModel? custom,
+    RecordElemReqModel? record,
   }) async {
     return await LightIMSDKHttp.sendMessage(
       userId: userId,
@@ -242,7 +305,9 @@ class LightIMSDK {
       image: image,
       audio: audio,
       video: video,
+      file: file,
       custom: custom,
+      record: record,
     );
   }
 
@@ -254,7 +319,7 @@ class LightIMSDK {
     return await sendMessage(
       userId: userId,
       type: LimMessageType.text,
-      text: text,
+      text: TextElemReqModel(text: text),
     );
   }
 
@@ -262,14 +327,34 @@ class LightIMSDK {
   static Future<ResponseModel<MessageSendResModel?>?> sendImageMessage({
     required String userId,
     required XFile file,
+    required XFile thumbnailFile,
   }) async {
-    final res = await _fileUpload(file: file, contentType: file.mimeType!);
+    final res = await _fileUpload(
+      file: file,
+      contentType: file.mimeType ?? lookupMimeType(file.name)!,
+    );
     if (res == null) return null;
+
+    String? res1 = '';
+    if (thumbnailFile.path.isNotEmpty) {
+      res1 = await _fileUpload(
+        file: thumbnailFile,
+        contentType:
+            thumbnailFile.mimeType ?? lookupMimeType(thumbnailFile.name)!,
+      );
+      if (res1 == null) return null;
+    }
 
     return await sendMessage(
       userId: userId,
       type: LimMessageType.image,
-      image: res,
+      image: ImageElemReqModel(
+        contentType: file.mimeType ?? lookupMimeType(file.name)!,
+        name: file.name,
+        size: await file.length(),
+        url: res,
+        thumbnailUrl: res1,
+      ),
     );
   }
 
@@ -278,13 +363,20 @@ class LightIMSDK {
     required String userId,
     required XFile file,
   }) async {
-    final res = await _fileUpload(file: file, contentType: file.mimeType!);
+    final res = await _fileUpload(
+        file: file, contentType: file.mimeType ?? lookupMimeType(file.name)!);
     if (res == null) return null;
 
     return await sendMessage(
       userId: userId,
       type: LimMessageType.audio,
-      audio: res,
+      audio: AudioElemReqModel(
+        contentType: file.mimeType ?? lookupMimeType(file.name)!,
+        duration: 0,
+        name: file.name,
+        size: await file.length(),
+        url: res,
+      ),
     );
   }
 
@@ -292,14 +384,56 @@ class LightIMSDK {
   static Future<ResponseModel<MessageSendResModel?>?> sendVideoMessage({
     required String userId,
     required XFile file,
+    required XFile thumbnailFile,
   }) async {
-    final res = await _fileUpload(file: file, contentType: file.mimeType!);
+    final res = await _fileUpload(
+      file: file,
+      contentType: file.mimeType ?? lookupMimeType(file.name)!,
+    );
     if (res == null) return null;
+
+    String? res1 = '';
+    if (thumbnailFile.path.isNotEmpty) {
+      res1 = await _fileUpload(
+        file: thumbnailFile,
+        contentType:
+            thumbnailFile.mimeType ?? lookupMimeType(thumbnailFile.name)!,
+      );
+      if (res1 == null) return null;
+    }
 
     return await sendMessage(
       userId: userId,
       type: LimMessageType.video,
-      video: res,
+      video: VideoElemReqModel(
+        contentType: file.mimeType ?? lookupMimeType(file.name)!,
+        duration: 0,
+        name: file.name,
+        size: await file.length(),
+        url: res,
+        thumbnailUrl: res1,
+      ),
+    );
+  }
+
+  /// 发送文件消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendFileMessage({
+    required String userId,
+    required XFile file,
+  }) async {
+    final res = await _fileUpload(
+        file: file, contentType: file.mimeType ?? lookupMimeType(file.name)!);
+    if (res == null) return null;
+
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.file,
+      file: FileElemReqModel(
+        contentType: file.mimeType ?? lookupMimeType(file.name)!,
+        name: file.name,
+        size: await file.length(),
+        url: res,
+      ),
     );
   }
 
@@ -311,7 +445,28 @@ class LightIMSDK {
     return await sendMessage(
       userId: userId,
       type: LimMessageType.custom,
-      custom: custom,
+      custom: CustomElemReqModel(content: custom),
+    );
+  }
+
+  /// 发送语音消息
+  static Future<ResponseModel<MessageSendResModel?>?> sendRecordMessage({
+    required String userId,
+    required XFile file,
+  }) async {
+    final res = await _fileUpload(
+        file: file, contentType: file.mimeType ?? lookupMimeType(file.name)!);
+    if (res == null) return null;
+
+    return await sendMessage(
+      userId: userId,
+      type: LimMessageType.record,
+      record: RecordElemReqModel(
+        contentType: file.mimeType ?? lookupMimeType(file.name)!,
+        duration: 0,
+        size: await file.length(),
+        url: res,
+      ),
     );
   }
 
@@ -362,11 +517,60 @@ class LightIMSDK {
         isRead: e.isRead,
         isPeerRead: false,
         createAt: e.createAt,
-        text: e.text,
-        image: e.image,
-        audio: e.audio,
-        video: e.video,
-        custom: e.custom,
+        text: e.text == null
+            ? null
+            : LimTextElem(
+                text: e.text!.text,
+              ),
+        image: e.image == null
+            ? null
+            : LimImageElem(
+                contentType: e.image!.contentType,
+                name: e.image!.name,
+                size: e.image!.size,
+                url: e.image!.url,
+                thumbnailUrl: e.image!.thumbnailUrl,
+              ),
+        audio: e.audio == null
+            ? null
+            : LimAudioElem(
+                contentType: e.audio!.contentType,
+                duration: e.audio!.duration,
+                name: e.audio!.name,
+                size: e.audio!.size,
+                url: e.audio!.url,
+              ),
+        video: e.video == null
+            ? null
+            : LimVideoElem(
+                contentType: e.video!.contentType,
+                duration: e.video!.duration,
+                name: e.video!.name,
+                size: e.video!.size,
+                url: e.video!.url,
+                thumbnailUrl: e.video!.thumbnailUrl,
+              ),
+        file: e.file == null
+            ? null
+            : LimFileElem(
+                contentType: e.file!.contentType,
+                name: e.file!.name,
+                size: e.file!.size,
+                url: e.file!.url,
+              ),
+        custom: e.custom == null
+            ? null
+            : LimCustomElem(
+                content: e.custom!.content,
+              ),
+        record: e.record == null
+            ? null
+            : LimRecordElem(
+                contentType: e.record!.contentType,
+                duration: e.record!.duration,
+                size: e.record!.size,
+                url: e.record!.url,
+              ),
       );
 
       items.add(limMessage);
@@ -453,11 +657,60 @@ class LightIMSDK {
           isRead: pktData.isRead,
           isPeerRead: pktData.isPeerRead,
           createAt: pktData.createAt,
-          text: pktData.text,
-          image: pktData.image,
-          audio: pktData.audio,
-          video: pktData.video,
-          custom: pktData.custom,
+          text: pktData.text == null
+              ? null
+              : LimTextElem(
+                  text: pktData.text!.text,
+                ),
+          image: pktData.image == null
+              ? null
+              : LimImageElem(
+                  contentType: pktData.image!.contentType,
+                  name: pktData.image!.name,
+                  size: pktData.image!.size,
+                  url: pktData.image!.url,
+                  thumbnailUrl: pktData.image!.thumbnailUrl,
+                ),
+          audio: pktData.audio == null
+              ? null
+              : LimAudioElem(
+                  contentType: pktData.audio!.contentType,
+                  duration: pktData.audio!.duration,
+                  name: pktData.audio!.name,
+                  size: pktData.audio!.size,
+                  url: pktData.audio!.url,
+                ),
+          video: pktData.video == null
+              ? null
+              : LimVideoElem(
+                  contentType: pktData.video!.contentType,
+                  duration: pktData.video!.duration,
+                  name: pktData.video!.name,
+                  size: pktData.video!.size,
+                  url: pktData.video!.url,
+                  thumbnailUrl: pktData.video!.thumbnailUrl,
+                ),
+          file: pktData.file == null
+              ? null
+              : LimFileElem(
+                  contentType: pktData.file!.contentType,
+                  name: pktData.file!.name,
+                  size: pktData.file!.size,
+                  url: pktData.file!.url,
+                ),
+          custom: pktData.custom == null
+              ? null
+              : LimCustomElem(
+                  content: pktData.custom!.content,
+                ),
+          record: pktData.record == null
+              ? null
+              : LimRecordElem(
+                  contentType: pktData.record!.contentType,
+                  duration: pktData.record!.duration,
+                  size: pktData.record!.size,
+                  url: pktData.record!.url,
+                ),
         );
         final oldLimConversationIndex = _conversationList.indexWhere(
           (e) => e.conversationId == limMessage.conversationId,

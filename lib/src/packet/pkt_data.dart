@@ -13,12 +13,13 @@ class MessagePktDataModel extends PacketDataModel {
     required this.isRead,
     required this.isPeerRead,
     required this.createAt,
-    // LimTextElem? textElem,
     required this.text,
     required this.image,
     required this.audio,
     required this.video,
+    required this.file,
     required this.custom,
+    required this.record,
   });
 
   final String senderId;
@@ -32,11 +33,13 @@ class MessagePktDataModel extends PacketDataModel {
   final String userId;
   final bool isRead;
   final bool isPeerRead;
-  final String? text;
-  final String? image;
-  final String? audio;
-  final String? video;
-  final String? custom;
+  final TextElem? text;
+  final ImageElem? image;
+  final AudioElem? audio;
+  final VideoElem? video;
+  final FileElem? file;
+  final CustomElem? custom;
+  final RecordElem? record;
 
   factory MessagePktDataModel.fromMap(Map<String, dynamic> json) =>
       MessagePktDataModel(
@@ -51,11 +54,15 @@ class MessagePktDataModel extends PacketDataModel {
         isRead: json["is_read"] == 1,
         isPeerRead: json["is_peer_read"] == 1,
         createAt: json["create_at"],
-        text: json["text"],
-        image: json["image"],
-        audio: json["audio"],
-        video: json["video"],
-        custom: json["custom"],
+        text: json["text"] == null ? null : TextElem.fromMap(json["text"]),
+        image: json["image"] == null ? null : ImageElem.fromMap(json["image"]),
+        audio: json["audio"] == null ? null : AudioElem.fromMap(json["audio"]),
+        video: json["video"] == null ? null : VideoElem.fromMap(json["video"]),
+        file: json["file"] == null ? null : FileElem.fromMap(json["file"]),
+        custom:
+            json["custom"] == null ? null : CustomElem.fromMap(json["custom"]),
+        record:
+            json["record"] == null ? null : RecordElem.fromMap(json["record"]),
       );
 
   @override
@@ -71,11 +78,201 @@ class MessagePktDataModel extends PacketDataModel {
         "is_read": isRead ? 1 : 0,
         "is_peer_read": isPeerRead ? 1 : 0,
         "create_at": createAt,
+        "text": text?.toMap(),
+        "image": image?.toMap(),
+        "audio": audio?.toMap(),
+        "video": video?.toMap(),
+        "file": file?.toMap(),
+        "custom": custom?.toMap(),
+        "record": record?.toMap(),
+      };
+}
+
+class TextElem {
+  TextElem({
+    required this.text,
+  });
+
+  final String text;
+
+  factory TextElem.fromMap(Map<String, dynamic> json) => TextElem(
+        text: json["text"],
+      );
+
+  Map<String, dynamic> toMap() => {
         "text": text,
-        "image": image,
-        "audio": audio,
-        "video": video,
-        "custom": custom,
+      };
+}
+
+class ImageElem {
+  ImageElem({
+    required this.contentType,
+    required this.name,
+    required this.size,
+    required this.url,
+    required this.thumbnailUrl,
+  });
+
+  final String contentType;
+  final String name;
+  final int size;
+  final String url;
+  final String thumbnailUrl;
+
+  factory ImageElem.fromMap(Map<String, dynamic> json) => ImageElem(
+        contentType: json["content_type"],
+        name: json["name"],
+        size: json["size"],
+        url: json["url"],
+        thumbnailUrl: json["thumbnail_url"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "content_type": contentType,
+        "name": name,
+        "size": size,
+        "url": url,
+        "thumbnail_url": thumbnailUrl,
+      };
+}
+
+class AudioElem {
+  AudioElem({
+    required this.contentType,
+    required this.duration,
+    required this.name,
+    required this.size,
+    required this.url,
+  });
+
+  final String contentType;
+  final int duration;
+  final String name;
+  final int size;
+  final String url;
+
+  factory AudioElem.fromMap(Map<String, dynamic> json) => AudioElem(
+        contentType: json["content_type"],
+        duration: json["duration"],
+        name: json["name"],
+        size: json["size"],
+        url: json["url"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "content_type": contentType,
+        "duration": duration,
+        "name": name,
+        "size": size,
+        "url": url,
+      };
+}
+
+class VideoElem {
+  VideoElem({
+    required this.contentType,
+    required this.duration,
+    required this.name,
+    required this.size,
+    required this.url,
+    required this.thumbnailUrl,
+  });
+
+  final String contentType;
+  final int duration;
+  final String name;
+  final int size;
+  final String url;
+  final String thumbnailUrl;
+
+  factory VideoElem.fromMap(Map<String, dynamic> json) => VideoElem(
+        contentType: json["content_type"],
+        duration: json["duration"],
+        name: json["name"],
+        size: json["size"],
+        url: json["url"],
+        thumbnailUrl: json["thumbnail_url"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "content_type": contentType,
+        "duration": duration,
+        "name": name,
+        "size": size,
+        "url": url,
+        "thumbnail_url": thumbnailUrl,
+      };
+}
+
+class FileElem {
+  FileElem({
+    required this.contentType,
+    required this.name,
+    required this.size,
+    required this.url,
+  });
+
+  final String contentType;
+  final String name;
+  final int size;
+  final String url;
+
+  factory FileElem.fromMap(Map<String, dynamic> json) => FileElem(
+        contentType: json["content_type"],
+        name: json["name"],
+        size: json["size"],
+        url: json["url"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "content_type": contentType,
+        "name": name,
+        "size": size,
+        "url": url,
+      };
+}
+
+class CustomElem {
+  CustomElem({
+    required this.content,
+  });
+
+  final String content;
+
+  factory CustomElem.fromMap(Map<String, dynamic> json) => CustomElem(
+        content: json["content"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "content": content,
+      };
+}
+
+class RecordElem {
+  RecordElem({
+    required this.contentType,
+    required this.duration,
+    required this.size,
+    required this.url,
+  });
+
+  final String contentType;
+  final int duration;
+  final int size;
+  final String url;
+
+  factory RecordElem.fromMap(Map<String, dynamic> json) => RecordElem(
+        contentType: json["content_type"],
+        duration: json["duration"],
+        size: json["size"],
+        url: json["url"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "content_type": contentType,
+        "duration": duration,
+        "size": size,
+        "url": url,
       };
 }
 

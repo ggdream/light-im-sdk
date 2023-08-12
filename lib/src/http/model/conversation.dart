@@ -1,3 +1,5 @@
+import 'message.dart';
+
 class ConversationPullResModel {
   ConversationPullResModel({
     required this.count,
@@ -39,62 +41,84 @@ class ConversationPullResModelItem {
     required this.type,
     required this.unread,
     required this.video,
+    required this.file,
+    required this.record,
   });
 
-  final String? audio;
   final String conversationId;
   final int createAt;
-  final String? custom;
-  final String? image;
   final bool isRead;
   final bool isSelf;
   final String receiverId;
   final String senderId;
   final String userId;
   final int sequence;
-  final String? text;
   final int timestamp;
   final int type;
   final int unread;
-  final String? video;
+  final MessageSendResModelTextElem? text;
+  final MessageSendResModelImageElem? image;
+  final MessageSendResModelAudioElem? audio;
+  final MessageSendResModelVideoElem? video;
+  final MessageSendResModelFileElem? file;
+  final MessageSendResModelCustomElem? custom;
+  final MessageSendResModelRecordElem? record;
 
   factory ConversationPullResModelItem.fromMap(Map<String, dynamic> json) =>
       ConversationPullResModelItem(
-        audio: json["audio"],
         conversationId: json["conversation_id"],
         createAt: json["create_at"],
-        custom: json["custom"],
-        image: json["image"],
         isRead: json["is_read"] == 1,
         isSelf: json["is_self"] == 1,
         receiverId: json["receiver_id"],
         senderId: json["sender_id"],
         userId: json["user_id"],
         sequence: json["sequence"],
-        text: json["text"],
         timestamp: json["timestamp"],
         type: json["type"],
         unread: json["unread"],
-        video: json["video"],
+        text: json["text"] == null
+            ? null
+            : MessageSendResModelTextElem.fromMap(json["text"]),
+        image: json["image"] == null
+            ? null
+            : MessageSendResModelImageElem.fromMap(json["image"]),
+        audio: json["audio"] == null
+            ? null
+            : MessageSendResModelAudioElem.fromMap(json["audio"]),
+        video: json["video"] == null
+            ? null
+            : MessageSendResModelVideoElem.fromMap(json["video"]),
+        file: json["file"] == null
+            ? null
+            : MessageSendResModelFileElem.fromMap(json["file"]),
+        custom: json["custom"] == null
+            ? null
+            : MessageSendResModelCustomElem.fromMap(json["custom"]),
+        record: json["record"] == null
+            ? null
+            : MessageSendResModelRecordElem.fromMap(json["record"]),
       );
 
   Map<String, dynamic> toMap() => {
-        "audio": audio,
         "conversation_id": conversationId,
         "create_at": createAt,
-        "custom": custom,
-        "image": image,
         "is_read": isRead ? 1 : 0,
         "is_self": isSelf ? 1 : 0,
         "receiver_id": receiverId,
         "sender_id": senderId,
         "user_id": userId,
         "sequence": sequence,
-        "text": text,
         "timestamp": timestamp,
         "type": type,
         "unread": unread,
-        "video": video,
+        "text": text?.toMap(),
+        "image": image?.toMap(),
+        "audio": audio?.toMap(),
+        "video": video?.toMap(),
+        "file": file?.toMap(),
+        "custom": custom?.toMap(),
+        "record": record?.toMap(),
       };
 }
 

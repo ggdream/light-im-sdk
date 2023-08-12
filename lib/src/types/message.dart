@@ -4,5 +4,7 @@ enum LimMessageType {
   image,
   audio,
   video,
+  file,
   custom,
+  record,
 }

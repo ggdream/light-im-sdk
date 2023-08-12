@@ -1,3 +1,7 @@
+import 'package:light_im_sdk/src/types/types.dart';
+
+import 'elem.dart';
+
 class LimMessage {
   LimMessage({
     required this.senderId,
@@ -13,12 +17,13 @@ class LimMessage {
     required this.isRead,
     required this.isPeerRead,
     required this.createAt,
-    // LimTextElem? textElem,
     required this.text,
     required this.image,
     required this.audio,
     required this.video,
+    required this.file,
     required this.custom,
+    required this.record,
   });
 
   final String senderId;
@@ -35,11 +40,13 @@ class LimMessage {
 
   final bool isRead;
   final bool isPeerRead;
-  final String? text;
-  final String? image;
-  final String? audio;
-  final String? video;
-  final String? custom;
+  final LimTextElem? text;
+  final LimImageElem? image;
+  final LimAudioElem? audio;
+  final LimVideoElem? video;
+  final LimFileElem? file;
+  final LimCustomElem? custom;
+  final LimRecordElem? record;
 
   factory LimMessage.fromMap(Map<String, dynamic> json) => LimMessage(
         avatar: json["avatar"],
@@ -55,11 +62,20 @@ class LimMessage {
         isRead: json["is_read"] == 1,
         isPeerRead: json["is_peer_read"] == 1,
         createAt: json["create_at"],
-        text: json["text"],
-        image: json["image"],
-        audio: json["audio"],
-        video: json["video"],
-        custom: json["custom"],
+        text: json["text"] == null ? null : LimTextElem.fromMap(json["text"]),
+        image:
+            json["image"] == null ? null : LimImageElem.fromMap(json["image"]),
+        audio:
+            json["audio"] == null ? null : LimAudioElem.fromMap(json["audio"]),
+        video:
+            json["video"] == null ? null : LimVideoElem.fromMap(json["video"]),
+        file: json["file"] == null ? null : LimFileElem.fromMap(json["file"]),
+        custom: json["custom"] == null
+            ? null
+            : LimCustomElem.fromMap(json["custom"]),
+        record: json["record"] == null
+            ? null
+            : LimRecordElem.fromMap(json["record"]),
       );
 
   Map<String, dynamic> toMap() => {
@@ -76,12 +92,46 @@ class LimMessage {
         "is_read": isRead ? 1 : 0,
         "is_peer_read": isPeerRead ? 1 : 0,
         "create_at": createAt,
-        "text": text,
-        "image": image,
-        "audio": audio,
-        "video": video,
-        "custom": custom,
+        "text": text?.toMap(),
+        "image": image?.toMap(),
+        "audio": audio?.toMap(),
+        "video": video?.toMap(),
+        "file": file?.toMap(),
+        "custom": custom?.toMap(),
+        "record": record?.toMap(),
       };
+
+  @override
+  String toString() {
+    late final LimElem elem;
+    switch (LimMessageType.values[type]) {
+      case LimMessageType.text:
+        elem = text!;
+        break;
+      case LimMessageType.image:
+        elem = image!;
+        break;
+      case LimMessageType.audio:
+        elem = audio!;
+        break;
+      case LimMessageType.video:
+        elem = video!;
+        break;
+      case LimMessageType.file:
+        elem = file!;
+        break;
+      case LimMessageType.custom:
+        elem = custom!;
+        break;
+      case LimMessageType.record:
+        elem = record!;
+        break;
+      default:
+        return '[未知消息]';
+    }
+
+    return elem.toString();
+  }
 }
 
 class LimMessagePull {
