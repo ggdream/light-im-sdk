@@ -453,6 +453,7 @@ class LightIMSDK {
   static Future<ResponseModel<MessageSendResModel?>?> sendRecordMessage({
     required String userId,
     required XFile file,
+    required int duration,
   }) async {
     final res = await _fileUpload(
         file: file, contentType: file.mimeType ?? lookupMimeType(file.name)!);
@@ -463,7 +464,7 @@ class LightIMSDK {
       type: LimMessageType.record,
       record: RecordElemReqModel(
         contentType: file.mimeType ?? lookupMimeType(file.name)!,
-        duration: 0,
+        duration: duration,
         size: await file.length(),
         url: res,
       ),
