@@ -145,9 +145,11 @@ class LightIMSDK {
   /// 删除会话
   static Future<ResponseModel<ConversationDeleteResModel?>?>
       deleteConversation({
-    required String userId,
+    required String conversationId,
   }) async {
-    return await LightIMSDKHttp.deleteConversation(userId: userId);
+    return await LightIMSDKHttp.deleteConversation(
+      conversationId: conversationId,
+    );
   }
 
   /// 获取会话信息
@@ -287,7 +289,7 @@ class LightIMSDK {
 
   /// 发送消息
   static Future<ResponseModel<MessageSendResModel?>?> sendMessage({
-    required String userId,
+    required String conversationId,
     required LimMessageType type,
     TextElemReqModel? text,
     ImageElemReqModel? image,
@@ -297,8 +299,23 @@ class LightIMSDK {
     CustomElemReqModel? custom,
     RecordElemReqModel? record,
   }) async {
+    String? userId;
+    String? groupId;
+    if (conversationId.startsWith('c_')) {
+      final sub = conversationId.substring(2);
+      final strs = sub.split('_');
+      if (strs.first == _userId) {
+        userId = strs.last;
+      } else {
+        userId = strs.first;
+      }
+    } else {
+      groupId = conversationId.substring(2);
+    }
+
     return await LightIMSDKHttp.sendMessage(
       userId: userId,
+      groupId: groupId,
       type: type.index,
       timestamp: DateTime.now().millisecondsSinceEpoch,
       text: text,
@@ -313,11 +330,11 @@ class LightIMSDK {
 
   /// 发送文本消息
   static Future<ResponseModel<MessageSendResModel?>?> sendTextMessage({
-    required String userId,
+    required String conversationId,
     required String text,
   }) async {
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.text,
       text: TextElemReqModel(text: text),
     );
@@ -325,7 +342,7 @@ class LightIMSDK {
 
   /// 发送图片消息
   static Future<ResponseModel<MessageSendResModel?>?> sendImageMessage({
-    required String userId,
+    required String conversationId,
     required XFile file,
     required XFile thumbnailFile,
   }) async {
@@ -346,7 +363,7 @@ class LightIMSDK {
     }
 
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.image,
       image: ImageElemReqModel(
         contentType: file.mimeType ?? lookupMimeType(file.name)!,
@@ -360,7 +377,7 @@ class LightIMSDK {
 
   /// 发送语音消息
   static Future<ResponseModel<MessageSendResModel?>?> sendAudioMessage({
-    required String userId,
+    required String conversationId,
     required XFile file,
   }) async {
     final res = await _fileUpload(
@@ -368,7 +385,7 @@ class LightIMSDK {
     if (res == null) return null;
 
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.audio,
       audio: AudioElemReqModel(
         contentType: file.mimeType ?? lookupMimeType(file.name)!,
@@ -382,7 +399,7 @@ class LightIMSDK {
 
   /// 发送语音消息
   static Future<ResponseModel<MessageSendResModel?>?> sendVideoMessage({
-    required String userId,
+    required String conversationId,
     required XFile file,
     required XFile thumbnailFile,
   }) async {
@@ -403,7 +420,7 @@ class LightIMSDK {
     }
 
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.video,
       video: VideoElemReqModel(
         contentType: file.mimeType ?? lookupMimeType(file.name)!,
@@ -418,7 +435,7 @@ class LightIMSDK {
 
   /// 发送文件消息
   static Future<ResponseModel<MessageSendResModel?>?> sendFileMessage({
-    required String userId,
+    required String conversationId,
     required XFile file,
   }) async {
     final res = await _fileUpload(
@@ -426,7 +443,7 @@ class LightIMSDK {
     if (res == null) return null;
 
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.file,
       file: FileElemReqModel(
         contentType: file.mimeType ?? lookupMimeType(file.name)!,
@@ -439,11 +456,11 @@ class LightIMSDK {
 
   /// 发送自定义消息
   static Future<ResponseModel<MessageSendResModel?>?> sendCustomMessage({
-    required String userId,
+    required String conversationId,
     required String custom,
   }) async {
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.custom,
       custom: CustomElemReqModel(content: custom),
     );
@@ -451,7 +468,7 @@ class LightIMSDK {
 
   /// 发送语音消息
   static Future<ResponseModel<MessageSendResModel?>?> sendRecordMessage({
-    required String userId,
+    required String conversationId,
     required XFile file,
     required int duration,
   }) async {
@@ -460,7 +477,7 @@ class LightIMSDK {
     if (res == null) return null;
 
     return await sendMessage(
-      userId: userId,
+      conversationId: conversationId,
       type: LimMessageType.record,
       record: RecordElemReqModel(
         contentType: file.mimeType ?? lookupMimeType(file.name)!,
@@ -473,11 +490,11 @@ class LightIMSDK {
 
   /// 已读消息
   static Future<ResponseModel<MessageMarkResModel?>?> markMessage({
-    required String userId,
+    required String conversationId,
     required int sequence,
   }) async {
     return await LightIMSDKHttp.markMessage(
-      userId: userId,
+      conversationId: conversationId,
       sequence: sequence,
     );
   }
@@ -489,11 +506,11 @@ class LightIMSDK {
 
   /// 获取历史消息
   static Future<LimMessagePull?> pullMessage({
-    required String userId,
+    required String conversationId,
     required int sequence,
   }) async {
     final res = await LightIMSDKHttp.pullMessage(
-      userId: userId,
+      conversationId: conversationId,
       sequence: sequence,
     );
     if (!LightIMSDKHttp.checkRes(res)) {

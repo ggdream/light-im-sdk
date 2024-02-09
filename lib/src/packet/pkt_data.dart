@@ -8,6 +8,7 @@ class MessagePktDataModel extends PacketDataModel {
     required this.timestamp,
     required this.type,
     required this.userId,
+    required this.groupId,
     required this.senderId,
     required this.receiverId,
     required this.isRead,
@@ -31,6 +32,7 @@ class MessagePktDataModel extends PacketDataModel {
   final int createAt;
   final int type;
   final String userId;
+  final String groupId;
   final bool isRead;
   final bool isPeerRead;
   final TextElem? text;
@@ -51,6 +53,7 @@ class MessagePktDataModel extends PacketDataModel {
         senderId: json["sender_id"],
         receiverId: json["receiver_id"],
         userId: json["user_id"],
+        groupId: json["group_id"],
         isRead: json["is_read"] == 1,
         isPeerRead: json["is_peer_read"] == 1,
         createAt: json["create_at"],
@@ -75,6 +78,7 @@ class MessagePktDataModel extends PacketDataModel {
         "timestamp": timestamp,
         "type": type,
         "user_id": userId,
+        "group_id": groupId,
         "is_read": isRead ? 1 : 0,
         "is_peer_read": isPeerRead ? 1 : 0,
         "create_at": createAt,

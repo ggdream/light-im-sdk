@@ -3,6 +3,7 @@ class MessageSendResModel {
   MessageSendResModel({
     required this.audio,
     required this.conversationId,
+    required this.groupId,
     required this.createAt,
     required this.custom,
     required this.image,
@@ -23,6 +24,7 @@ class MessageSendResModel {
 
   ///会话ID
   final String conversationId;
+  final String groupId;
   final int createAt;
 
   ///回方已读
@@ -69,6 +71,7 @@ class MessageSendResModel {
         userId: json["user_id"],
         sequence: json["sequence"],
         timestamp: json["timestamp"],
+        groupId: json["group_id"],
         type: json["type"],
         text: json["text"] == null
             ? null
@@ -104,6 +107,7 @@ class MessageSendResModel {
         "user_id": userId,
         "sequence": sequence,
         "timestamp": timestamp,
+        "group_id": groupId,
         "type": type,
         "text": text?.toMap(),
         "image": image?.toMap(),

@@ -17,9 +17,9 @@ class LightIMSDKHttp {
     // required String token,
   }) {
     final opts = BaseOptions(
-      connectTimeout: const Duration(seconds: 5),
-      sendTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 5),
+      connectTimeout: const Duration(seconds: 15),
+      sendTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       baseUrl: baseUrl,
       responseType: ResponseType.json,
       contentType: Headers.jsonContentType,
@@ -219,7 +219,8 @@ class LightIMSDKHttp {
 
   /// 发送聊天消息
   static Future<ResponseModel<MessageSendResModel?>?> sendMessage({
-    required String userId,
+    String? userId,
+    String? groupId,
     required int type,
     required int timestamp,
     TextElemReqModel? text,
@@ -234,6 +235,7 @@ class LightIMSDKHttp {
       '/message/send',
       {
         'receiver_id': userId,
+        'group_id': groupId,
         'type': type,
         'timestamp': timestamp,
         'text': text?.toMap(),
@@ -250,13 +252,13 @@ class LightIMSDKHttp {
 
   /// 获取历史消息
   static Future<ResponseModel<MessagePullResModel?>?> pullMessage({
-    required String userId,
+    required String conversationId,
     required int sequence,
   }) async {
     return post(
       '/message/pull',
       {
-        'user_id': userId,
+        'conversation_id': conversationId,
         'sequence': sequence,
       },
       (map) => MessagePullResModel.fromMap(map),
@@ -265,13 +267,13 @@ class LightIMSDKHttp {
 
   /// 已读历史消息
   static Future<ResponseModel<MessageMarkResModel?>?> markMessage({
-    required String userId,
+    required String conversationId,
     required int sequence,
   }) async {
     return post(
       '/message/mark',
       {
-        'user_id': userId,
+        'conversation_id': conversationId,
         'sequence': sequence,
       },
       (map) => MessageMarkResModel.fromMap(map),
@@ -300,12 +302,12 @@ class LightIMSDKHttp {
   /// 删除某个会话
   static Future<ResponseModel<ConversationDeleteResModel?>?>
       deleteConversation({
-    required String userId,
+    required String conversationId,
   }) async {
     return post(
       '/conv/delete',
       {
-        'user_id': userId,
+        'conversation_id': conversationId,
       },
       (map) => ConversationDeleteResModel.fromMap(map),
     );
