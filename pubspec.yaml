@@ -1,7 +1,7 @@
 name: light_im_sdk
-description: A new Flutter package project.
-version: 0.0.1
-homepage:
+description: A light im.
+version: 0.1.0
+repository: https://github.com/ggdream/light-im-sdk
 
 environment:
   sdk: '>=3.0.5 <4.0.0'
