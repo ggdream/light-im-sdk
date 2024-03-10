@@ -1,20 +1,28 @@
 class FilePresignPutURLResModel {
   FilePresignPutURLResModel({
-    required this.presignUrl,
+    required this.id,
     required this.url,
+    required this.key,
+    required this.expireAt,
   });
 
-  final String presignUrl;
+  final String id;
   final String url;
+  final String key;
+  final int expireAt;
 
   factory FilePresignPutURLResModel.fromMap(Map<String, dynamic> json) =>
       FilePresignPutURLResModel(
-        presignUrl: json["presign_url"],
+        id: json["id"],
         url: json["url"],
+        key: json["key"],
+        expireAt: json["expire_at"],
       );
 
   Map<String, dynamic> toMap() => {
-        "presign_url": presignUrl,
+        "id": id,
         "url": url,
+        "key": key,
+        "expire_at": expireAt,
       };
 }

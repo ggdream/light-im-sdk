@@ -1,6 +1,6 @@
 ///聊天消息
-class MessageSendResModel {
-  MessageSendResModel({
+class MessageItemModel {
+  MessageItemModel({
     required this.audio,
     required this.conversationId,
     required this.groupId,
@@ -51,16 +51,16 @@ class MessageSendResModel {
   ///消息类型
   final int type;
 
-  final MessageSendResModelTextElem? text;
-  final MessageSendResModelImageElem? image;
-  final MessageSendResModelAudioElem? audio;
-  final MessageSendResModelVideoElem? video;
-  final MessageSendResModelFileElem? file;
-  final MessageSendResModelCustomElem? custom;
-  final MessageSendResModelRecordElem? record;
+  final TextElem? text;
+  final ImageElem? image;
+  final AudioElem? audio;
+  final VideoElem? video;
+  final FileElem? file;
+  final CustomElem? custom;
+  final RecordElem? record;
 
-  factory MessageSendResModel.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModel(
+  factory MessageItemModel.fromMap(Map<String, dynamic> json) =>
+      MessageItemModel(
         conversationId: json["conversation_id"],
         createAt: json["create_at"],
         isPeerRead: json["is_peer_read"] == 1,
@@ -73,27 +73,15 @@ class MessageSendResModel {
         timestamp: json["timestamp"],
         groupId: json["group_id"],
         type: json["type"],
-        text: json["text"] == null
-            ? null
-            : MessageSendResModelTextElem.fromMap(json["text"]),
-        image: json["image"] == null
-            ? null
-            : MessageSendResModelImageElem.fromMap(json["image"]),
-        audio: json["audio"] == null
-            ? null
-            : MessageSendResModelAudioElem.fromMap(json["audio"]),
-        video: json["video"] == null
-            ? null
-            : MessageSendResModelVideoElem.fromMap(json["video"]),
-        file: json["file"] == null
-            ? null
-            : MessageSendResModelFileElem.fromMap(json["file"]),
-        custom: json["custom"] == null
-            ? null
-            : MessageSendResModelCustomElem.fromMap(json["custom"]),
-        record: json["record"] == null
-            ? null
-            : MessageSendResModelRecordElem.fromMap(json["record"]),
+        text: json["text"] == null ? null : TextElem.fromMap(json["text"]),
+        image: json["image"] == null ? null : ImageElem.fromMap(json["image"]),
+        audio: json["audio"] == null ? null : AudioElem.fromMap(json["audio"]),
+        video: json["video"] == null ? null : VideoElem.fromMap(json["video"]),
+        file: json["file"] == null ? null : FileElem.fromMap(json["file"]),
+        custom:
+            json["custom"] == null ? null : CustomElem.fromMap(json["custom"]),
+        record:
+            json["record"] == null ? null : RecordElem.fromMap(json["record"]),
       );
 
   Map<String, dynamic> toMap() => {
@@ -119,15 +107,14 @@ class MessageSendResModel {
       };
 }
 
-class MessageSendResModelTextElem {
-  MessageSendResModelTextElem({
+class TextElem {
+  TextElem({
     required this.text,
   });
 
   final String text;
 
-  factory MessageSendResModelTextElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelTextElem(
+  factory TextElem.fromMap(Map<String, dynamic> json) => TextElem(
         text: json["text"],
       );
 
@@ -136,8 +123,8 @@ class MessageSendResModelTextElem {
       };
 }
 
-class MessageSendResModelImageElem {
-  MessageSendResModelImageElem({
+class ImageElem {
+  ImageElem({
     required this.contentType,
     required this.name,
     required this.size,
@@ -151,8 +138,7 @@ class MessageSendResModelImageElem {
   final String url;
   final String thumbnailUrl;
 
-  factory MessageSendResModelImageElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelImageElem(
+  factory ImageElem.fromMap(Map<String, dynamic> json) => ImageElem(
         contentType: json["content_type"],
         name: json["name"],
         size: json["size"],
@@ -169,8 +155,8 @@ class MessageSendResModelImageElem {
       };
 }
 
-class MessageSendResModelAudioElem {
-  MessageSendResModelAudioElem({
+class AudioElem {
+  AudioElem({
     required this.contentType,
     required this.duration,
     required this.name,
@@ -184,8 +170,7 @@ class MessageSendResModelAudioElem {
   final int size;
   final String url;
 
-  factory MessageSendResModelAudioElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelAudioElem(
+  factory AudioElem.fromMap(Map<String, dynamic> json) => AudioElem(
         contentType: json["content_type"],
         duration: json["duration"],
         name: json["name"],
@@ -202,8 +187,8 @@ class MessageSendResModelAudioElem {
       };
 }
 
-class MessageSendResModelVideoElem {
-  MessageSendResModelVideoElem({
+class VideoElem {
+  VideoElem({
     required this.contentType,
     required this.duration,
     required this.name,
@@ -219,8 +204,7 @@ class MessageSendResModelVideoElem {
   final String url;
   final String thumbnailUrl;
 
-  factory MessageSendResModelVideoElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelVideoElem(
+  factory VideoElem.fromMap(Map<String, dynamic> json) => VideoElem(
         contentType: json["content_type"],
         duration: json["duration"],
         name: json["name"],
@@ -239,8 +223,8 @@ class MessageSendResModelVideoElem {
       };
 }
 
-class MessageSendResModelFileElem {
-  MessageSendResModelFileElem({
+class FileElem {
+  FileElem({
     required this.contentType,
     required this.name,
     required this.size,
@@ -252,8 +236,7 @@ class MessageSendResModelFileElem {
   final int size;
   final String url;
 
-  factory MessageSendResModelFileElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelFileElem(
+  factory FileElem.fromMap(Map<String, dynamic> json) => FileElem(
         contentType: json["content_type"],
         name: json["name"],
         size: json["size"],
@@ -268,15 +251,14 @@ class MessageSendResModelFileElem {
       };
 }
 
-class MessageSendResModelCustomElem {
-  MessageSendResModelCustomElem({
+class CustomElem {
+  CustomElem({
     required this.content,
   });
 
   final String content;
 
-  factory MessageSendResModelCustomElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelCustomElem(
+  factory CustomElem.fromMap(Map<String, dynamic> json) => CustomElem(
         content: json["content"],
       );
 
@@ -285,8 +267,8 @@ class MessageSendResModelCustomElem {
       };
 }
 
-class MessageSendResModelRecordElem {
-  MessageSendResModelRecordElem({
+class RecordElem {
+  RecordElem({
     required this.contentType,
     required this.duration,
     required this.size,
@@ -298,8 +280,7 @@ class MessageSendResModelRecordElem {
   final int size;
   final String url;
 
-  factory MessageSendResModelRecordElem.fromMap(Map<String, dynamic> json) =>
-      MessageSendResModelRecordElem(
+  factory RecordElem.fromMap(Map<String, dynamic> json) => RecordElem(
         contentType: json["content_type"],
         duration: json["duration"],
         size: json["size"],
@@ -322,14 +303,14 @@ class MessagePullResModel {
   });
 
   final int isEnd;
-  final List<MessageSendResModel> items;
+  final List<MessageItemModel> items;
   final int sequence;
 
   factory MessagePullResModel.fromMap(Map<String, dynamic> json) =>
       MessagePullResModel(
-        isEnd: json["is_end"],
-        items: List<MessageSendResModel>.from(
-            json["items"].map((x) => MessageSendResModel.fromMap(x))),
+        isEnd: json["has_more"] == 1 ? 0 : 1,
+        items: List<MessageItemModel>.from(
+            json["items"].map((x) => MessageItemModel.fromMap(x))),
         sequence: json["sequence"],
       );
 
@@ -345,6 +326,15 @@ class MessageMarkResModel {
 
   factory MessageMarkResModel.fromMap(Map<String, dynamic> json) =>
       MessageMarkResModel();
+
+  Map<String, dynamic> toMap() => {};
+}
+
+class MessageSendResModel {
+  MessageSendResModel();
+
+  factory MessageSendResModel.fromMap(Map<String, dynamic> json) =>
+      MessageSendResModel();
 
   Map<String, dynamic> toMap() => {};
 }

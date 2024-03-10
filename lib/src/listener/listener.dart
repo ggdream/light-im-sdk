@@ -5,8 +5,10 @@ class LightIMSDKListener {
   LightIMSDKListener({
     this.onReceiveNewMessage,
     this.onOpenNewConversation,
+    this.onUnreadCountChange,
   });
 
   final void Function(LimMessage)? onReceiveNewMessage;
   final void Function(LimConversation)? onOpenNewConversation;
+  final void Function(int)? onUnreadCountChange;
 }

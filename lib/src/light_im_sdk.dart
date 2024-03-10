@@ -18,6 +18,7 @@ class LightIMSDK {
   static late StreamSubscription<dynamic> _stream;
   static StreamController? _streamController;
   static late Timer _pingTimer;
+  static Timer? _reconnectTimer;
   static final Map<String, LightIMSDKListener> _lightIMSDKListener = {};
 
   static final List<LimConversation> _conversationList = [];
@@ -66,14 +67,19 @@ class LightIMSDK {
     _streamController = StreamController.broadcast();
     _conn = WebSocketChannel.connect(
       Uri.parse(
-        _tls ? 'wss://$_endpoint/connect/im' : 'ws://$_endpoint/connect/im',
+        _tls ? 'wss://$_endpoint/websocket' : 'ws://$_endpoint/websocket',
       ),
     );
+    if (_reconnectTimer != null) {
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+    }
+
     _stream = _conn.stream.listen(
       _onData,
       onError: _onError,
       onDone: _onDone,
-      cancelOnError: true,
+      cancelOnError: false,
     );
 
     final data = AuthPktDataModel(
@@ -108,7 +114,7 @@ class LightIMSDK {
 
   /// 退出登录
   static Future<ResponseModel<ConnectLogoutResModel?>?> logout() async {
-    final res = await LightIMSDK.logout();
+    final res = await LightIMSDKHttp.logout();
     if (!LightIMSDKHttp.checkRes(res)) return res;
 
     _dispose();
@@ -127,19 +133,21 @@ class LightIMSDK {
     required String contentType,
   }) async {
     final res1 = await LightIMSDKHttp.filePresignPutURL(
+      name: file.name,
+      size: await file.length(),
       contentType: contentType,
     );
     if (!LightIMSDKHttp.checkRes(res1)) return null;
 
     final res1Data = res1!.data!;
     final res2 = await LightIMSDKHttp.filePresignPut(
-      url: res1Data.presignUrl,
+      url: res1Data.url,
       file: file,
       contentType: contentType,
     );
     if (res2 != true) return null;
 
-    return res1Data.url;
+    return res1Data.key;
   }
 
   /// 删除会话
@@ -154,40 +162,92 @@ class LightIMSDK {
 
   /// 获取会话信息
   static Future<LimConversation?> detailConversation({
-    required String userId,
+    required String conversationId,
   }) async {
-    final res = await LightIMSDKHttp.detailConversation(userId: userId);
+    final res =
+        await LightIMSDKHttp.detailConversation(conversationId: conversationId);
     if (!LightIMSDKHttp.checkRes(res)) return null;
 
+    final e = res!.data!.lastMessage;
     return LimConversation(
-      userId: userId,
-      conversationId: res!.data!.conversationId,
-      nickname: res.data!.nickname,
+      userId: res.data!.userId,
+      groupId: res.data!.groupId,
+      conversationId: res.data!.conversationId,
+      nickname: res.data!.name,
       avatar: res.data!.avatar,
       unread: 0,
       createAt: 0,
-      lastMessage: LimMessage(
-        senderId: '',
-        receiverId: '',
-        userId: '',
-        avatar: '',
-        conversationId: '',
-        isSelf: false,
-        nickname: '',
-        seq: 0,
-        timestamp: 0,
-        type: 0,
-        isRead: false,
-        isPeerRead: false,
-        createAt: 0,
-        text: null,
-        image: null,
-        audio: null,
-        video: null,
-        file: null,
-        custom: null,
-        record: null,
-      ),
+      lastMessage: e == null
+          ? null
+          : LimMessage(
+              senderId: e.senderId,
+              receiverId: e.receiverId,
+              userId: e.userId,
+              avatar: '',
+              conversationId: e.conversationId,
+              isSelf: e.isSelf,
+              nickname: '',
+              seq: e.sequence,
+              timestamp: e.timestamp,
+              type: e.type,
+              isRead: e.isRead,
+              isPeerRead: false,
+              createAt: e.createAt,
+              text: e.text == null
+                  ? null
+                  : LimTextElem(
+                      text: e.text!.text,
+                    ),
+              image: e.image == null
+                  ? null
+                  : LimImageElem(
+                      contentType: e.image!.contentType,
+                      name: e.image!.name,
+                      size: e.image!.size,
+                      url: e.image!.url,
+                      thumbnailUrl: e.image!.thumbnailUrl,
+                    ),
+              audio: e.audio == null
+                  ? null
+                  : LimAudioElem(
+                      contentType: e.audio!.contentType,
+                      duration: e.audio!.duration,
+                      name: e.audio!.name,
+                      size: e.audio!.size,
+                      url: e.audio!.url,
+                    ),
+              video: e.video == null
+                  ? null
+                  : LimVideoElem(
+                      contentType: e.video!.contentType,
+                      duration: e.video!.duration,
+                      name: e.video!.name,
+                      size: e.video!.size,
+                      url: e.video!.url,
+                      thumbnailUrl: e.video!.thumbnailUrl,
+                    ),
+              file: e.file == null
+                  ? null
+                  : LimFileElem(
+                      contentType: e.file!.contentType,
+                      name: e.file!.name,
+                      size: e.file!.size,
+                      url: e.file!.url,
+                    ),
+              custom: e.custom == null
+                  ? null
+                  : LimCustomElem(
+                      content: e.custom!.content,
+                    ),
+              record: e.record == null
+                  ? null
+                  : LimRecordElem(
+                      contentType: e.record!.contentType,
+                      duration: e.record!.duration,
+                      size: e.record!.size,
+                      url: e.record!.url,
+                    ),
+            ),
     );
   }
 
@@ -200,84 +260,87 @@ class LightIMSDK {
 
     final data = res!.data!;
     final ret = <LimConversation>[];
-    for (var e in data.items) {
-      final limUserInfo = await _getUserInfo(e.userId);
-      final lastMessage = LimMessage(
-        senderId: e.senderId,
-        receiverId: e.receiverId,
-        userId: e.userId,
-        avatar: limUserInfo!.avatar,
-        conversationId: e.conversationId,
-        isSelf: e.isSelf,
-        nickname: limUserInfo.nickname,
-        seq: e.sequence,
-        timestamp: e.timestamp,
-        type: e.type,
-        isRead: e.isRead,
-        isPeerRead: false,
-        createAt: e.createAt,
-        text: e.text == null
-            ? null
-            : LimTextElem(
-                text: e.text!.text,
-              ),
-        image: e.image == null
-            ? null
-            : LimImageElem(
-                contentType: e.image!.contentType,
-                name: e.image!.name,
-                size: e.image!.size,
-                url: e.image!.url,
-                thumbnailUrl: e.image!.thumbnailUrl,
-              ),
-        audio: e.audio == null
-            ? null
-            : LimAudioElem(
-                contentType: e.audio!.contentType,
-                duration: e.audio!.duration,
-                name: e.audio!.name,
-                size: e.audio!.size,
-                url: e.audio!.url,
-              ),
-        video: e.video == null
-            ? null
-            : LimVideoElem(
-                contentType: e.video!.contentType,
-                duration: e.video!.duration,
-                name: e.video!.name,
-                size: e.video!.size,
-                url: e.video!.url,
-                thumbnailUrl: e.video!.thumbnailUrl,
-              ),
-        file: e.file == null
-            ? null
-            : LimFileElem(
-                contentType: e.file!.contentType,
-                name: e.file!.name,
-                size: e.file!.size,
-                url: e.file!.url,
-              ),
-        custom: e.custom == null
-            ? null
-            : LimCustomElem(
-                content: e.custom!.content,
-              ),
-        record: e.record == null
-            ? null
-            : LimRecordElem(
-                contentType: e.record!.contentType,
-                duration: e.record!.duration,
-                size: e.record!.size,
-                url: e.record!.url,
-              ),
-      );
+    for (var item in data.items) {
+      final e = item.lastMessage;
+      final lastMessage = e == null
+          ? null
+          : LimMessage(
+              senderId: e.senderId,
+              receiverId: e.receiverId,
+              userId: e.userId,
+              avatar: '',
+              conversationId: e.conversationId,
+              isSelf: e.isSelf,
+              nickname: '',
+              seq: e.sequence,
+              timestamp: e.timestamp,
+              type: e.type,
+              isRead: e.isRead,
+              isPeerRead: false,
+              createAt: e.createAt,
+              text: e.text == null
+                  ? null
+                  : LimTextElem(
+                      text: e.text!.text,
+                    ),
+              image: e.image == null
+                  ? null
+                  : LimImageElem(
+                      contentType: e.image!.contentType,
+                      name: e.image!.name,
+                      size: e.image!.size,
+                      url: e.image!.url,
+                      thumbnailUrl: e.image!.thumbnailUrl,
+                    ),
+              audio: e.audio == null
+                  ? null
+                  : LimAudioElem(
+                      contentType: e.audio!.contentType,
+                      duration: e.audio!.duration,
+                      name: e.audio!.name,
+                      size: e.audio!.size,
+                      url: e.audio!.url,
+                    ),
+              video: e.video == null
+                  ? null
+                  : LimVideoElem(
+                      contentType: e.video!.contentType,
+                      duration: e.video!.duration,
+                      name: e.video!.name,
+                      size: e.video!.size,
+                      url: e.video!.url,
+                      thumbnailUrl: e.video!.thumbnailUrl,
+                    ),
+              file: e.file == null
+                  ? null
+                  : LimFileElem(
+                      contentType: e.file!.contentType,
+                      name: e.file!.name,
+                      size: e.file!.size,
+                      url: e.file!.url,
+                    ),
+              custom: e.custom == null
+                  ? null
+                  : LimCustomElem(
+                      content: e.custom!.content,
+                    ),
+              record: e.record == null
+                  ? null
+                  : LimRecordElem(
+                      contentType: e.record!.contentType,
+                      duration: e.record!.duration,
+                      size: e.record!.size,
+                      url: e.record!.url,
+                    ),
+            );
       final conv = LimConversation(
-        userId: e.userId,
-        conversationId: e.conversationId,
-        nickname: lastMessage.nickname,
-        avatar: lastMessage.avatar,
-        unread: e.unread,
-        createAt: e.createAt,
+        userId: item.userId,
+        groupId: item.groupId,
+        conversationId: item.conversationId,
+        nickname: item.name,
+        avatar: item.avatar,
+        unread: item.unreadCount,
+        createAt: e?.createAt ?? 0,
         lastMessage: lastMessage,
       );
 
@@ -508,10 +571,12 @@ class LightIMSDK {
   static Future<LimMessagePull?> pullMessage({
     required String conversationId,
     required int sequence,
+    required int size,
   }) async {
     final res = await LightIMSDKHttp.pullMessage(
       conversationId: conversationId,
       sequence: sequence,
+      size: size,
     );
     if (!LightIMSDKHttp.checkRes(res)) {
       return null;
@@ -599,6 +664,19 @@ class LightIMSDK {
       items: items,
       sequence: data.sequence,
     );
+  }
+
+  static Future<int?> getUnreadCount() async {
+    return _getUnreadCount();
+  }
+
+  static int _getUnreadCount() {
+    int count = 0;
+    for (var e in _conversationList) {
+      count += e.unread;
+    }
+
+    return count;
   }
 
   static void _sendPingPacket(Timer _) {
@@ -738,15 +816,18 @@ class LightIMSDK {
           unread += _conversationList[oldLimConversationIndex].unread;
         }
 
-        final userLimUserInfo = await _getUserInfo(pktData.userId);
+        final userLimUserInfo = await _getUserInfo(
+          pktData.isSelf ? pktData.receiverId : pktData.senderId,
+        );
         final limConversation = LimConversation(
-          userId: limMessage.userId,
+          userId: pktData.isSelf ? limMessage.receiverId : limMessage.senderId,
           conversationId: limMessage.conversationId,
           nickname: userLimUserInfo!.nickname,
           avatar: userLimUserInfo.avatar,
           unread: unread,
           createAt: limMessage.createAt,
           lastMessage: limMessage,
+          groupId: limMessage.groupId,
         );
         if (oldLimConversationIndex > -1) {
           _conversationList.removeAt(oldLimConversationIndex);
@@ -760,6 +841,7 @@ class LightIMSDK {
         _lightIMSDKListener.values.toList().forEach((e) {
           if (unread == 1) e.onOpenNewConversation?.call(limConversation);
           e.onReceiveNewMessage?.call((limMessage));
+          e.onUnreadCountChange?.call(_getUnreadCount());
         });
         break;
       default:
@@ -772,8 +854,18 @@ class LightIMSDK {
 
     _pingTimer.cancel();
     _stream.cancel();
-    login(userId: _userId, token: _token);
   }
 
-  static void _onDone() {}
+  static void _onDone() {
+    reconnect();
+  }
+
+  static void reconnect() async {
+    _reconnectTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (timer) {
+        login(userId: _userId, token: _token);
+      },
+    );
+  }
 }

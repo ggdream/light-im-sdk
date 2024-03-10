@@ -25,100 +25,46 @@ class ConversationPullResModel {
 ///会话消息
 class ConversationPullResModelItem {
   ConversationPullResModelItem({
-    required this.audio,
     required this.conversationId,
     required this.createAt,
-    required this.custom,
-    required this.image,
-    required this.isRead,
-    required this.isSelf,
-    required this.receiverId,
-    required this.senderId,
-    required this.userId,
-    required this.sequence,
-    required this.text,
-    required this.timestamp,
-    required this.type,
-    required this.unread,
-    required this.video,
-    required this.file,
-    required this.record,
+    this.userId,
+    this.groupId,
+    required this.unreadCount,
+    required this.lastMessage,
+    required this.name,
+    required this.avatar,
   });
 
   final String conversationId;
+  final String name;
+  final String avatar;
   final int createAt;
-  final bool isRead;
-  final bool isSelf;
-  final String receiverId;
-  final String senderId;
-  final String userId;
-  final int sequence;
-  final int timestamp;
-  final int type;
-  final int unread;
-  final MessageSendResModelTextElem? text;
-  final MessageSendResModelImageElem? image;
-  final MessageSendResModelAudioElem? audio;
-  final MessageSendResModelVideoElem? video;
-  final MessageSendResModelFileElem? file;
-  final MessageSendResModelCustomElem? custom;
-  final MessageSendResModelRecordElem? record;
+  final String? userId;
+  final String? groupId;
+  final int unreadCount;
+  final MessageItemModel? lastMessage;
 
   factory ConversationPullResModelItem.fromMap(Map<String, dynamic> json) =>
       ConversationPullResModelItem(
         conversationId: json["conversation_id"],
         createAt: json["create_at"],
-        isRead: json["is_read"] == 1,
-        isSelf: json["is_self"] == 1,
-        receiverId: json["receiver_id"],
-        senderId: json["sender_id"],
         userId: json["user_id"],
-        sequence: json["sequence"],
-        timestamp: json["timestamp"],
-        type: json["type"],
-        unread: json["unread"],
-        text: json["text"] == null
-            ? null
-            : MessageSendResModelTextElem.fromMap(json["text"]),
-        image: json["image"] == null
-            ? null
-            : MessageSendResModelImageElem.fromMap(json["image"]),
-        audio: json["audio"] == null
-            ? null
-            : MessageSendResModelAudioElem.fromMap(json["audio"]),
-        video: json["video"] == null
-            ? null
-            : MessageSendResModelVideoElem.fromMap(json["video"]),
-        file: json["file"] == null
-            ? null
-            : MessageSendResModelFileElem.fromMap(json["file"]),
-        custom: json["custom"] == null
-            ? null
-            : MessageSendResModelCustomElem.fromMap(json["custom"]),
-        record: json["record"] == null
-            ? null
-            : MessageSendResModelRecordElem.fromMap(json["record"]),
+        groupId: json["group_id"],
+        unreadCount: json["unread_count"],
+        lastMessage:json["last_message"] ==null?null: MessageItemModel.fromMap(json["last_message"]),
+        name: json["name"],
+        avatar: json["avatar"],
       );
 
   Map<String, dynamic> toMap() => {
         "conversation_id": conversationId,
         "create_at": createAt,
-        "is_read": isRead ? 1 : 0,
-        "is_self": isSelf ? 1 : 0,
-        "receiver_id": receiverId,
-        "sender_id": senderId,
         "user_id": userId,
-        "sequence": sequence,
-        "timestamp": timestamp,
-        "type": type,
-        "unread": unread,
-        "text": text?.toMap(),
-        "image": image?.toMap(),
-        "audio": audio?.toMap(),
-        "video": video?.toMap(),
-        "file": file?.toMap(),
-        "custom": custom?.toMap(),
-        "record": record?.toMap(),
+        "group_id": groupId,
+        "unread_count": unreadCount,
+        "last_message": lastMessage?.toMap(),
+        "name": name,
+        "avatar": avatar,
       };
 }
 
@@ -136,13 +82,15 @@ class ConversationDetailResModel {
     required this.avatar,
     required this.conversationId,
     required this.nickname,
-    required this.userId,
+    this.userId,
+    this.groupId,
   });
 
   final String avatar;
   final String conversationId;
   final String nickname;
-  final String userId;
+  final String? userId;
+  final String? groupId;
 
   factory ConversationDetailResModel.fromMap(Map<String, dynamic> json) =>
       ConversationDetailResModel(
@@ -150,6 +98,7 @@ class ConversationDetailResModel {
         conversationId: json["conversation_id"],
         nickname: json["nickname"],
         userId: json["user_id"],
+        groupId: json["group_id"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -157,5 +106,6 @@ class ConversationDetailResModel {
         "conversation_id": conversationId,
         "nickname": nickname,
         "user_id": userId,
+        "group_id": groupId,
       };
 }

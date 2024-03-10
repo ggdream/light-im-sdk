@@ -9,7 +9,7 @@ export 'model/model.dart';
 class LightIMSDKHttp {
   LightIMSDKHttp._();
 
-  static late final Dio dio;
+  static late Dio dio;
 
   static void init({
     required String baseUrl,
@@ -24,8 +24,8 @@ class LightIMSDKHttp {
       responseType: ResponseType.json,
       contentType: Headers.jsonContentType,
       headers: {
-        'user-agent': 'light-im',
-        'referer': 'flutter',
+        // 'user-agent': 'light-im',
+        // 'referer': 'flutter',
       },
     );
 
@@ -39,8 +39,9 @@ class LightIMSDKHttp {
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         options.headers.addAll({
-          'light-im-uid': userId,
-          'light-im-token': token,
+          // 'light-im-uid': userId,
+          // 'light-im-token': token,
+          'x-uni-token': token,
         });
 
         return handler.next(options);
@@ -185,7 +186,7 @@ class LightIMSDKHttp {
   /// 退出登录
   static Future<ResponseModel<ConnectLogoutResModel?>?> logout() async {
     return post(
-      '/connect/logout',
+      '/auth/logout',
       {},
       (map) => ConnectLogoutResModel.fromMap(map),
     );
@@ -193,12 +194,20 @@ class LightIMSDKHttp {
 
   /// 获取上传文件的预签名链接
   static Future<ResponseModel<FilePresignPutURLResModel?>?> filePresignPutURL({
+    required String name,
+    required int size,
     required String contentType,
+    int type = 0,
+    String objectId = '',
   }) async {
     return post(
       '/file/presign',
       {
+        'name': name,
+        'size': size,
         'content_type': contentType,
+        'type': type,
+        'object_id': objectId,
       },
       (map) => FilePresignPutURLResModel.fromMap(map),
     );
@@ -209,9 +218,9 @@ class LightIMSDKHttp {
     required String userId,
   }) async {
     return post(
-      '/user/profile',
+      '/user/detail',
       {
-        'user_id': userId,
+        'id': userId,
       },
       (map) => UserProfileResModel.fromMap(map),
     );
@@ -254,12 +263,14 @@ class LightIMSDKHttp {
   static Future<ResponseModel<MessagePullResModel?>?> pullMessage({
     required String conversationId,
     required int sequence,
+    required int size,
   }) async {
     return post(
-      '/message/pull',
+      '/message/list',
       {
         'conversation_id': conversationId,
         'sequence': sequence,
+        'size': size,
       },
       (map) => MessagePullResModel.fromMap(map),
     );
@@ -293,7 +304,7 @@ class LightIMSDKHttp {
   static Future<ResponseModel<ConversationPullResModel?>?>
       pullConversation() async {
     return post(
-      '/conv/pull',
+      '/conv/list',
       {},
       (map) => ConversationPullResModel.fromMap(map),
     );
@@ -307,23 +318,23 @@ class LightIMSDKHttp {
     return post(
       '/conv/delete',
       {
-        'conversation_id': conversationId,
+        'id': conversationId,
       },
       (map) => ConversationDeleteResModel.fromMap(map),
     );
   }
 
   /// 获取会话信息
-  static Future<ResponseModel<ConversationDetailResModel?>?>
+  static Future<ResponseModel<ConversationPullResModelItem?>?>
       detailConversation({
-    required String userId,
+    required String conversationId,
   }) async {
     return post(
       '/conv/detail',
       {
-        'user_id': userId,
+        'id': conversationId,
       },
-      (map) => ConversationDetailResModel.fromMap(map),
+      (map) => ConversationPullResModelItem.fromMap(map),
     );
   }
 }

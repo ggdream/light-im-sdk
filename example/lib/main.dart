@@ -31,14 +31,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _textEditingController1 = TextEditingController();
-  final _textEditingController2 = TextEditingController();
+  final _textEditingController1 = TextEditingController(text: '6');
+  final _textEditingController2 = TextEditingController(
+    text: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNiIsInJvbGUiOjAsInN0YXR1cyI6MCwiaXNzIjoic3FueSIsImV4cCI6MTcwODMyNTQyOCwibmJmIjoxNzA3NzIwNjI4LCJpYXQiOjE3MDc3MjA2Mjh9.z1xT9Zv_AkITLPr3VCjb2RR5uEewer06HOvcroSlyc-xoXumuC4ehdLdTOlX2KReMxd7kKhi3sNqIFh7gAsJAA',
+  );
 
   @override
   void initState() {
     super.initState();
     LightIMSDK.init(
-        endpoint: '127.0.0.1:8080/api/c',
+        endpoint: '127.0.0.1:8080/im',
         listener: LightIMSDKListener(
           onReceiveNewMessage: (p0) {
              debugPrint(jsonEncode(p0.toMap()));
@@ -87,7 +89,7 @@ class _HomePageState extends State<HomePage> {
 
   void _sendMessage() async {
     final res = await LightIMSDK.sendTextMessage(
-      conversationId: 'c_1_2',
+      conversationId: 'c_6_7',
       text: '你好',
     );
     debugPrint(jsonEncode(res?.data?.toMap() ?? {}));

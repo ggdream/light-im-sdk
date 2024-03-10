@@ -6,7 +6,8 @@ class LimMessage {
   LimMessage({
     required this.senderId,
     required this.receiverId,
-    required this.userId,
+    this.userId,
+    this.groupId,
     required this.avatar,
     required this.conversationId,
     required this.isSelf,
@@ -28,7 +29,8 @@ class LimMessage {
 
   final String senderId;
   final String receiverId;
-  final String userId;
+  final String? userId;
+  final String? groupId;
   final String conversationId;
   final String avatar;
   final bool isSelf;
@@ -52,6 +54,7 @@ class LimMessage {
         avatar: json["avatar"],
         conversationId: json["conversation_id"],
         userId: json["user_id"],
+        groupId: json["group_id"],
         isSelf: json["is_self"] == 1,
         nickname: json["nickname"],
         seq: json["seq"],
@@ -81,6 +84,7 @@ class LimMessage {
   Map<String, dynamic> toMap() => {
         "avatar": avatar,
         "user_id": userId,
+        "group_id": groupId,
         "conversation_id": conversationId,
         "is_self": isSelf,
         "nickname": nickname,

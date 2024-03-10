@@ -1,16 +1,19 @@
 import 'message.dart';
 
 class LimConversation {
-  final String userId;
+  final String? userId;
+  final String? groupId;
   final String conversationId;
+
   final String nickname;
   final String avatar;
   int unread;
   final int createAt;
-  LimMessage lastMessage;
+  LimMessage? lastMessage;
 
   LimConversation({
     required this.userId,
+    required this.groupId,
     required this.conversationId,
     required this.nickname,
     required this.avatar,
