@@ -1,5 +1,3 @@
-library light_im_sdk;
-
 export 'src/http/http.dart';
 export 'src/listener/listener.dart';
 export 'src/model/model.dart';
